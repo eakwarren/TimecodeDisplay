@@ -25,7 +25,10 @@ MuseScore {
     property real fps: 24
     property bool dropFrames: false
     property real currentTime: 0
-    property bool durationEnabled: true
+    property bool durationEnabled: false
+    property int startTick: 0
+    property int endTick: 0
+    property int tickDuration: 0
 
 
     // Initialize plugin
@@ -66,8 +69,20 @@ MuseScore {
         repeat: true
         running: false
         onTriggered: {
+
             if (useDirectPlaybackAPI && playbackModel) {
                 tcDisplay.text = formatTime(getPlayTimeSeconds());
+            }
+
+            if (durationEnabled) {
+                var seconds = durationTicksToSeconds();
+                if (isNaN(seconds)) {
+                    selectionDurationDisplay.text = "No range selection.";
+                } else {
+                    selectionDurationDisplay.text = formatTime(seconds);
+                }
+            } else {
+                selectionDurationDisplay.text = "";
             }
         }
     }
@@ -110,8 +125,12 @@ MuseScore {
                 height: 20
                 transparent: true
                 Layout.alignment: Qt.AlignLeft
-                opacity: .25
+                opacity: durationEnabled ? 1 : .25
                 onClicked: {
+
+                    durationEnabled = !durationEnabled;
+
+                    // selectionDurationDisplay.text = formatTime(durationTicksToSeconds());
 
                     // let timeline = buildScoreTimeline(curScore);
                     // let durationTicks = getSelectionTickRangeFromTimeline(timeline);
@@ -127,7 +146,7 @@ MuseScore {
             StyledTextLabel {
                 id: selectionDurationDisplay
                 Layout.alignment: Qt.AlignHCenter
-                opacity: durationEnabled ? .25 : 0
+                opacity: durationEnabled ? 1 : 0
                 text: "00:00:00:00"
                 font.pixelSize: 16
                 color: selectionDurationDisplay.text.length > 0
@@ -459,6 +478,203 @@ MuseScore {
 
         let totalSeconds = hours * 3600 + minutes * 60 + seconds + (milliseconds / 1000);
         return totalSeconds;
+    }
+
+    function durationTicksToSeconds() { // ran from onRun
+
+        var sel = getSelection();
+          if (sel === null) { //no selection
+              selectionDurationDisplay.text = "No selection"
+              console.log('No selection');
+                return;
+          }
+          // var beatBaseItem = beatBase.model.get(beatBase.currentIndex);
+          // Start Tempo
+          var foundTempo = undefined;
+          var segment = sel.startSeg;
+          while ((foundTempo === undefined) && (segment)) {
+                foundTempo = findExistingTempoElement(segment);
+                segment = segment.prev;
+          }
+          if (foundTempo !== undefined) {
+                console.log('Found start tempo text = ' + foundTempo.text);
+                // Try to extract base beat
+                // var targetBeatBaseIndex = findBeatBaseFromMarking(foundTempo);
+                // if (targetBeatBaseIndex !== -1) {
+                //       // Apply it
+                //       previousBeatIndex = targetBeatBaseIndex;
+                //       beatBase.currentIndex = targetBeatBaseIndex;
+                //       beatBaseItem = beatBase.model.get(targetBeatBaseIndex);
+                // }
+                // Update input field according to the (detected) beat
+                // startBPMvalue.placeholderText = Math.round(foundTempo.tempo * 60 / beatBaseItem.mult * 10) / 10;
+          }
+          // End Tempo
+          foundTempo = undefined;
+          segment = sel.endSeg;
+          while ((foundTempo === undefined) && (segment)) {
+                foundTempo = findExistingTempoElement(segment);
+                segment = segment.prev
+          }
+          if (foundTempo !== undefined) {
+                console.log('Found end tempo text = ' + foundTempo.text);
+                // endBPMvalue.placeholderText = Math.round(foundTempo.tempo * 60 / beatBaseItem.mult * 10) / 10;
+          }
+
+          var cursor = curScore.newCursor();
+          console.log("startTick: " + startTick);
+          console.log("endTick: " + endTick);
+
+          cursor.rewindToTick(startTick); //start of selection
+
+          let tempo = cursor.tempo; //expressed as multiplier of 60, 120BPM = 2, 130BPM = 2.1666666666666665
+          console.log("tempo: " + tempo);
+
+          let tpqn = 480; // typically 480
+          console.log("tpqn: " + tpqn);
+          // tempo = curScore.tempo(startTick); // in BPM
+
+          let secondsPerTick = (60/(60 * tempo)) / tpqn; // this assumes tempo is BPM (120), not 2. secondsPerTick = 0.00104166667
+          console.log("secondsPerTick: " + secondsPerTick);
+
+          let durationSeconds = tickDuration * secondsPerTick; // 3840 * 0.00104166667 = 4
+
+          console.log("tickDuration: " + tickDuration);
+          console.log("durationSeconds: " + durationSeconds);
+
+          let durationMilliseconds = durationSeconds * 1000;
+
+          console.log("Duration: ", durationSeconds, "seconds");
+          console.log("Duration: ", durationMilliseconds, "milliseconds");
+
+          return durationSeconds
+    }
+
+    function getSelection() {
+          var selection = null;
+          var cursor = curScore.newCursor();
+          cursor.rewind(1); //start of selection
+          if (!cursor.segment) { //no selection
+              selectionDurationDisplay.text = "No selection"
+              console.log('No selection');
+                return selection;
+          }
+          selection = {
+                start: cursor.tick,
+                startSeg: cursor.segment,
+                end: null,
+                endSeg: null
+          };
+
+          console.log("selection.start: " + selection.start);
+          // console.log("selection.startSeg: " + selection.startSeg);
+
+          cursor.rewind(2); //find end of selection
+          if (cursor.tick === 0) {
+                // this happens when the selection includes
+                // the last measure of the score.
+                // rewind(2) goes behind the last segment (where
+                // there's none) and sets tick=0
+                selection.end = curScore.lastSegment.tick + 1;
+                selection.endSeg = curScore.lastSegment;
+
+                console.log("if selection.end: " + selection.end);
+                // console.log("if selection.endSeg: " + selection.endSeg);
+          }
+          else {
+                selection.end = cursor.tick;
+                selection.endSeg = cursor.segment;
+
+              console.log("else selection.end: " + selection.end);  // showing up in logs
+              // console.log("else selection.endSeg: " + selection.endSeg);
+          }
+          startTick = selection.start;
+          endTick = selection.end;
+          tickDuration = selection.end - selection.start;
+
+          console.log("tickDuration: " + tickDuration);
+          // console.log("selection: " + selection);
+          return selection;
+    }
+
+    function findExistingTempoElement(segment) { //look in reverse order, there might be multiple TEMPO_TEXTs attached
+          // in that case MuseScore uses the last one in the list
+          for (var i = segment.annotations.length; i-- > 0; ) {
+                if (segment.annotations[i].type === Element.TEMPO_TEXT) {
+                      return (segment.annotations[i]);
+                }
+          }
+          return undefined; //invalid - no tempo text found
+    }
+
+    function applyTempoChanges()
+    {
+          var sel = getSelection();
+          if (sel === null) { //no selection
+              selectionDurationDisplay.text = "No selection"
+              console.log('No selection');
+                return;
+          }
+          var durationTicks = sel.end - sel.start;
+          console.log("durationTicks: " + durationTicks);
+
+          var beatBaseItem = beatBase.model.get(beatBase.currentIndex);
+          var startTempo = getTempoFromInput(startBPMvalue) * beatBaseItem.mult;
+          var endTempo = getTempoFromInput(endBPMvalue) * beatBaseItem.mult;
+          var tempoRange = (endTempo - startTempo);
+          console.log('Applying to selection [' + sel.start + ', ' + sel.end + '] = ' + durationTicks);
+          console.log(startTempo + ' (' + (startTempo*60) + ') -> ' + endTempo + ' (' + (endTempo*60) + ') = ' + tempoRange);
+
+          var cursor = curScore.newCursor();
+          cursor.rewind(1); //start of selection
+          var tempoTracker = {}; //tracker to ensure only one marking is created per 0.1 tempo changes
+          var endSegment = { track: undefined, tick: undefined };
+
+          curScore.startCmd();
+          //add indicative text if required
+          if (startTextValue.text !== "") {
+                var startText = newElement(Element.STAFF_TEXT);
+                startText.text = startTextValue.text;
+                if (startText.textStyleType !== undefined) {
+                      startText.textStyleType = TextStyleType.TECHNIQUE;
+                }
+                cursor.add(startText);
+          }
+
+          var midPoint = ((curveType.isLinear) ? 50.0 : midpointSlider.value) / 100; //linear == hit midpoint at 50% tickRange
+          var p = Math.log(0.5) / Math.log(midPoint);
+          // To find the matching tempo for each tick, we perform (%tickrange)^(p)
+          for (var trackIdx = 0; trackIdx < cursor.score.ntracks; ++trackIdx) {
+                cursor.rewind(1);
+                cursor.track = trackIdx;
+
+                while (cursor.segment && (cursor.tick < sel.end)) {
+                      //interpolation of the desired tempo
+                      var curveXpct = (cursor.tick - sel.start) / durationTicks;
+                      var outputPct = Math.pow(curveXpct, p);
+                      var newTempo = (outputPct * tempoRange) + startTempo;
+                      applyTempoToSegment(newTempo, cursor, false, beatBaseItem, tempoTracker);
+                      cursor.next();
+                }
+
+                if (cursor.segment) { //first element after selection
+                      if ((endSegment.tick === undefined) || (cursor.tick < endSegment.tick)) { //is closer to the selection end than in previous tracks
+                            endSegment.track = cursor.track;
+                            endSegment.tick = cursor.tick;
+                      }
+                }
+          }
+          //processed selection, now end at new tempo with a visible element
+          if ((endSegment.track !== undefined) && (endSegment.tick !== undefined)) { //but only if we found one
+                //relocate it
+                cursor.rewind(1);
+                cursor.track = endSegment.track;
+                while (cursor.tick < endSegment.tick) { cursor.next(); }
+                //arrived at end segment, write marking
+                applyTempoToSegment(endTempo, cursor, true, beatBaseItem);
+          }
+
+          curScore.endCmd(false);
     }
 
 }
