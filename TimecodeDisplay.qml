@@ -351,6 +351,18 @@ MuseScore {
                                         color: ui.theme.fontPrimaryColor
 
                                     }
+
+                                    Text {
+                                        text: "Ms: 999"
+                                        color: ui.theme.fontPrimaryColor
+
+                                    }
+
+                                    Text {
+                                        text: "Any number: 15, 12.34"
+                                        color: ui.theme.fontPrimaryColor
+
+                                    }
                                 }
                             }
                         }
