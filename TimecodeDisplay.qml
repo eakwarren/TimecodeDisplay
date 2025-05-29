@@ -107,7 +107,9 @@ MuseScore {
                 text: {
                     formatTime(getPlayTimeSeconds()) // re-evaluates if includeHours changes
                 }
-                font.pixelSize: 36
+                font.pixelSize: {
+                    if (fpsField.text === "999") { 33 } else { 36 }
+                }
                 color: ui.theme.accentColor
             }
 
