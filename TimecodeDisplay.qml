@@ -488,7 +488,7 @@ MuseScore {
         var sel = getSelection();
           if (sel === null) { //no selection
               selectionDurationDisplay.text = "No selection"
-              console.log('No selection');
+              // console.log('No selection');
                 return;
           }
           // var beatBaseItem = beatBase.model.get(beatBase.currentIndex);
@@ -500,7 +500,7 @@ MuseScore {
                 segment = segment.prev;
           }
           if (foundTempo !== undefined) {
-                console.log('Found start tempo text = ' + foundTempo.text);
+                // console.log('Found start tempo text = ' + foundTempo.text);
                 // Try to extract base beat
                 // var targetBeatBaseIndex = findBeatBaseFromMarking(foundTempo);
                 // if (targetBeatBaseIndex !== -1) {
@@ -520,35 +520,35 @@ MuseScore {
                 segment = segment.prev
           }
           if (foundTempo !== undefined) {
-                console.log('Found end tempo text = ' + foundTempo.text);
+                // console.log('Found end tempo text = ' + foundTempo.text);
                 // endBPMvalue.placeholderText = Math.round(foundTempo.tempo * 60 / beatBaseItem.mult * 10) / 10;
           }
 
           var cursor = curScore.newCursor();
-          console.log("startTick: " + startTick);
-          console.log("endTick: " + endTick);
+          // console.log("startTick: " + startTick);
+          // console.log("endTick: " + endTick);
 
           cursor.rewindToTick(startTick); //start of selection
 
           let tempo = cursor.tempo; //expressed as multiplier of 60, 120BPM = 2, 130BPM = 2.1666666666666665
-          console.log("tempo: " + tempo);
+          // console.log("tempo: " + tempo);
 
           let tpqn = 480; // typically 480
-          console.log("tpqn: " + tpqn);
+          // console.log("tpqn: " + tpqn);
           // tempo = curScore.tempo(startTick); // in BPM
 
           let secondsPerTick = (60/(60 * tempo)) / tpqn; // this assumes tempo is BPM (120), not 2. secondsPerTick = 0.00104166667
-          console.log("secondsPerTick: " + secondsPerTick);
+          // console.log("secondsPerTick: " + secondsPerTick);
 
           let durationSeconds = tickDuration * secondsPerTick; // 3840 * 0.00104166667 = 4
 
-          console.log("tickDuration: " + tickDuration);
-          console.log("durationSeconds: " + durationSeconds);
+          // console.log("tickDuration: " + tickDuration);
+          // console.log("durationSeconds: " + durationSeconds);
 
           let durationMilliseconds = durationSeconds * 1000;
 
-          console.log("Duration: ", durationSeconds, "seconds");
-          console.log("Duration: ", durationMilliseconds, "milliseconds");
+          // console.log("Duration: ", durationSeconds, "seconds");
+          // console.log("Duration: ", durationMilliseconds, "milliseconds");
 
           return durationSeconds
     }
@@ -559,7 +559,7 @@ MuseScore {
           cursor.rewind(1); //start of selection
           if (!cursor.segment) { //no selection
               selectionDurationDisplay.text = "No selection"
-              console.log('No selection');
+              // console.log('No selection');
                 return selection;
           }
           selection = {
@@ -569,7 +569,7 @@ MuseScore {
                 endSeg: null
           };
 
-          console.log("selection.start: " + selection.start);
+          // console.log("selection.start: " + selection.start);
           // console.log("selection.startSeg: " + selection.startSeg);
 
           cursor.rewind(2); //find end of selection
@@ -581,21 +581,21 @@ MuseScore {
                 selection.end = curScore.lastSegment.tick + 1;
                 selection.endSeg = curScore.lastSegment;
 
-                console.log("if selection.end: " + selection.end);
+                // console.log("if selection.end: " + selection.end);
                 // console.log("if selection.endSeg: " + selection.endSeg);
           }
           else {
                 selection.end = cursor.tick;
                 selection.endSeg = cursor.segment;
 
-              console.log("else selection.end: " + selection.end);  // showing up in logs
+              // console.log("else selection.end: " + selection.end);  // showing up in logs
               // console.log("else selection.endSeg: " + selection.endSeg);
           }
           startTick = selection.start;
           endTick = selection.end;
           tickDuration = selection.end - selection.start;
 
-          console.log("tickDuration: " + tickDuration);
+          // console.log("tickDuration: " + tickDuration);
           // console.log("selection: " + selection);
           return selection;
     }
@@ -615,18 +615,18 @@ MuseScore {
           var sel = getSelection();
           if (sel === null) { //no selection
               selectionDurationDisplay.text = "No selection"
-              console.log('No selection');
+              // console.log('No selection');
                 return;
           }
           var durationTicks = sel.end - sel.start;
-          console.log("durationTicks: " + durationTicks);
+          // console.log("durationTicks: " + durationTicks);
 
           var beatBaseItem = beatBase.model.get(beatBase.currentIndex);
           var startTempo = getTempoFromInput(startBPMvalue) * beatBaseItem.mult;
           var endTempo = getTempoFromInput(endBPMvalue) * beatBaseItem.mult;
           var tempoRange = (endTempo - startTempo);
-          console.log('Applying to selection [' + sel.start + ', ' + sel.end + '] = ' + durationTicks);
-          console.log(startTempo + ' (' + (startTempo*60) + ') -> ' + endTempo + ' (' + (endTempo*60) + ') = ' + tempoRange);
+          // console.log('Applying to selection [' + sel.start + ', ' + sel.end + '] = ' + durationTicks);
+          // console.log(startTempo + ' (' + (startTempo*60) + ') -> ' + endTempo + ' (' + (endTempo*60) + ') = ' + tempoRange);
 
           var cursor = curScore.newCursor();
           cursor.rewind(1); //start of selection
