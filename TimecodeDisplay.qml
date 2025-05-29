@@ -79,7 +79,8 @@ MuseScore {
                 if (isNaN(seconds)) {
                     selectionDurationDisplay.text = "No range selection.";
                 } else {
-                    selectionDurationDisplay.text = formatTime(seconds);
+                    var offsetSeconds = timecodeOffsetToSeconds(offsetField.text, fpsField.text, dropFrames);
+                    selectionDurationDisplay.text = formatTime(seconds - offsetSeconds);
                 }
             } else {
                 selectionDurationDisplay.text = "";
