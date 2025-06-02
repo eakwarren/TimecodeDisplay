@@ -13,7 +13,7 @@ MuseScore {
 
     // Properties for 4.4
     title: "Timecode Display"
-    description: "Displays synced timecode with offset and drop-frame support."
+    description: "Displays synced timecode with offset and drop-frame support. Optionally shows the duration of a selection in the score."
     thumbnailName: "TimecodeDisplayIcon.png"
 
     width: 225
