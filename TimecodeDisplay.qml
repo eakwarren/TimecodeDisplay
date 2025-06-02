@@ -260,7 +260,7 @@ MuseScore {
                         FlatButton {
                             id: framerateInfo
                             icon: IconCode.QUESTION_MARK
-                            toolTipTitle: "Click for frame rates"
+                            toolTipTitle: "Example frame rates"
                             transparent: true
                             width: 20
                             height: 20
@@ -278,10 +278,10 @@ MuseScore {
 
                                     Repeater {
                                         model: [
-                                            "Film: 24", "NTSC: 29.97d", "NTSC HD: 59.94d",
+                                            "Film: 24", "NTSC: 29.97*", "NTSC HD: 59.94*",
                                             "PAL: 25", "PAL HD: 50", "Web: 30", "HD: 60",
-                                            "Other: 23.978d", "Other: 23.98d", "Ms: 999",
-                                            "Any number: 15, 12.34"
+                                            "Other: 23.978*", "Other: 23.98*", "Ms: 999",
+                                            "Any number: 15, 12.34", "* drop frame"
                                         ]
                                         delegate: Text {
                                             text: modelData
