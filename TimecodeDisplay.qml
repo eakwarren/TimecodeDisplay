@@ -92,89 +92,76 @@ MuseScore {
         UI Layout
     ===================*/
 
-    Column {
-        id: mainColumn
+    Item {
+        id: mainItem
         anchors.fill: parent
         anchors.margins: 10
         anchors.topMargin: 0
-        spacing: 10
 
-        RowLayout {
-            height: 30
-
-            StyledTextLabel {
-                id: tcDisplay
-                text: {
-                    formatTime(getPlayTimeSeconds()) // re-evaluates if includeHours changes
-                }
-                font.pixelSize: {
-                    if (fpsField.text === "999") { 33 } else { 36 }
-                }
-                color: ui.theme.accentColor
-            }
-
-        }
-
-        RowLayout {
-            height: 25
+        Column {
+            id: mainColumn
+            spacing: 10
             width: parent.width
-            Layout.topMargin: 40
+            height: parent.height
 
-            FlatButton {
-                id: durationInfo
-                toolTipTitle: "Selection duration"
-                icon: IconCode.LOOP
-                width: 20
-                height: 20
-                transparent: true
-                Layout.alignment: Qt.AlignLeft
-                opacity: durationEnabled ? 1 : .25
-                onClicked: {
+            RowLayout {
+                height: 30
+                Layout.fillWidth: true
 
-                    durationEnabled = !durationEnabled;
-
-                    // selectionDurationDisplay.text = formatTime(durationTicksToSeconds());
-
-                    // let timeline = buildScoreTimeline(curScore);
-                    // let durationTicks = getSelectionTickRangeFromTimeline(timeline);
-                    // console.log("durationTicks: " + durationTicks);
-
-                    // let durationSeconds = tickToSeconds(durationTicks);
-                    // console.log("durationSeconds: " + durationSeconds);
-
-                    // selectionDurationDisplay.text = formatTime(durationSeconds);
+                StyledTextLabel {
+                    id: tcDisplay
+                    text: { formatTime(getPlayTimeSeconds()) } // re-evaluates if includeHours changes
+                    font.pixelSize: { if (fpsField.text === "999") { 33 } else { 36 } }
+                    color: ui.theme.accentColor
                 }
+
             }
 
-            StyledTextLabel {
-                id: selectionDurationDisplay
-                Layout.alignment: Qt.AlignHCenter
-                opacity: durationEnabled ? 1 : 0
-                text: "00:00:00:00"
-                font.pixelSize: 16
-                color: selectionDurationDisplay.text.length > 0
-                       ? ui.theme.fontPrimaryColor
-                       : Qt.rgba(ui.theme.fontPrimaryColor.r,
-                                 ui.theme.fontPrimaryColor.g,
-                                 ui.theme.fontPrimaryColor.b,
-                                 0.4) // gray out when empty
-                wrapMode: Text.Wrap
-                width: parent.width - settings.width - 10
-            }
+            RowLayout {
+                height: 25
+                width: parent.width
+                Layout.topMargin: 40
 
-            FlatButton {
-                id: settings
-                toolTipTitle: "Settings"
-                icon: IconCode.SETTINGS_COG
-                width: 20
-                height: 20
-                transparent: true
-                Layout.alignment: Qt.AlignRight
-                opacity: .25
-                onClicked: {
-                    // Show settings
-                    settingsOverlay.opacity = 1;
+                FlatButton {
+                    id: durationInfo
+                    toolTipTitle: "Selection duration"
+                    icon: IconCode.LOOP
+                    width: 20
+                    height: 20
+                    transparent: true
+                    Layout.alignment: Qt.AlignLeft
+                    opacity: durationEnabled ? 1 : .25
+                    onClicked: { durationEnabled = !durationEnabled; }
                 }
+
+                StyledTextLabel {
+                    id: selectionDurationDisplay
+                    Layout.alignment: Qt.AlignHCenter
+                    opacity: durationEnabled ? 1 : 0
+                    text: "00:00:00:00"
+                    font.pixelSize: 16
+                    color: selectionDurationDisplay.text.length > 0
+                           ? ui.theme.fontPrimaryColor
+                           : Qt.rgba(ui.theme.fontPrimaryColor.r,
+                                     ui.theme.fontPrimaryColor.g,
+                                     ui.theme.fontPrimaryColor.b,
+                                     0.4) // gray out when empty
+                    wrapMode: Text.Wrap
+                    width: parent.width - settings.width - 10
+                }
+
+                FlatButton {
+                    id: settings
+                    toolTipTitle: "Settings"
+                    icon: IconCode.SETTINGS_COG
+                    width: 20
+                    height: 20
+                    transparent: true
+                    Layout.alignment: Qt.AlignRight
+                    opacity: .25
+                    onClicked: { settingsOverlay.opacity = 1; } // Show settings
+                }
+
             }
 
         }
@@ -184,36 +171,34 @@ MuseScore {
             id: settingsOverlay
             width: parent.width
             height: parent.height
-            color: Qt.rgba(0, 0, 0, 0.5) // Semi-transparent background
+            color: ui.theme.backgroundPrimaryColor
             opacity: 0.0
             visible: opacity > 0
             anchors.fill: parent
-            z: 100 // Ensure it's above all other elements
+            z: 100 // above all other elements
 
-            // Add a MouseArea to block clicks to elements behind
+            // block clicks to elements behind
             MouseArea {
                 Layout.fillWidth: true
                 hoverEnabled: true
-                // Consume all mouse events to prevent clicking through
-                onClicked: { /* Do nothing, just consume the event */ }
-                onPressed: { /* Do nothing, just consume the event */ }
-                onReleased: { /* Do nothing, just consume the event */ }
+                onClicked: { } // do nothing, just consume the events
+                onPressed: { }
+                onReleased: { }
             }
 
             // Settings panel with the original size
-            Rectangle {
-                width: 225
-                height: 75
-                anchors.centerIn: parent
-                color: ui.theme.backgroundPrimaryColor
+            Item {
+                width: parent.width
+                height: parent.height
 
                 Column {
-                    anchors.fill: parent
-                    anchors.margins: 10
+                    width: parent.width
+                    height: parent.height
                     spacing: 10
 
                     RowLayout {
-                        height: 25
+                        height: 30
+                        Layout.topMargin: 10
 
                         StyledTextLabel {
                             id: fpsDesc
@@ -224,9 +209,7 @@ MuseScore {
 
                         TextField {
                             id: fpsField
-
                             text: fps
-
                             placeholderText: "24"
                             color: ui.theme.fontPrimaryColor
                             // Set the placeholder with dynamic opacity when empty
@@ -243,17 +226,14 @@ MuseScore {
                             Layout.alignment: Qt.AlignLeft
                             horizontalAlignment: TextInput.AlignLeft
                             validator: RegularExpressionValidator { regularExpression: /^((\d{1,2}).(\d{1,3}))$/ || /^((\d{1,2})$/ }
-
                             enabled: true
                         }
 
                         Label {
-                                id: offsetText
-
-                                Layout.alignment: Qt.AlignRight
-                                anchors.leftMargin: 5
-                                text: "Offset"
-                            }
+                            id: offsetText
+                            Layout.alignment: Qt.AlignRight
+                            text: "Offset"
+                        }
 
                         TextField {
                             id: offsetField
@@ -265,7 +245,6 @@ MuseScore {
                             text: "00:00:00:00" // default value
                             placeholderText: "HH:MM:SS:FF"
                             horizontalAlignment: TextInput.AlignLeft
-
                             onTextEdited: {
                                 tcDisplay.text = formatTime(getPlayTimeSeconds());
                             }
@@ -278,7 +257,6 @@ MuseScore {
                         width: parent.width
                         Layout.topMargin: 40
 
-
                         FlatButton {
                             id: framerateInfo
                             icon: IconCode.QUESTION_MARK
@@ -287,14 +265,10 @@ MuseScore {
                             width: 20
                             height: 20
                             Layout.alignment: Qt.AlignLeft
-
-                            onClicked: {
-                                popupView.toggleOpened()
-                            }
+                            onClicked: { popupView.toggleOpened() }
 
                             StyledPopupView {
                                 id: popupView
-
                                 contentWidth: layout.childrenRect.width
                                 contentHeight: layout.childrenRect.height
 
@@ -302,66 +276,17 @@ MuseScore {
                                     id: layout
                                     spacing: 10
 
-                                    Text {
-                                        text: "Film: 24"
-                                        color: ui.theme.fontPrimaryColor
-                                    }
-
-                                    Text {
-                                        text: "NTSC: 29.97d"
-                                        color: ui.theme.fontPrimaryColor
-
-                                    }
-
-                                    Text {
-                                        text: "NTSC HD: 59.94d"
-                                        color: ui.theme.fontPrimaryColor
-                                    }
-
-                                    Text {
-                                        text: "PAL: 25"
-                                        color: ui.theme.fontPrimaryColor
-                                    }
-
-                                    Text {
-                                        text: "PAL HD: 50"
-                                        color: ui.theme.fontPrimaryColor
-
-                                    }
-
-                                    Text {
-                                        text: "Web: 30"
-                                        color: ui.theme.fontPrimaryColor
-                                    }
-
-                                    Text {
-                                        text: "HD: 60"
-                                        color: ui.theme.fontPrimaryColor
-
-                                    }
-
-                                    Text {
-                                        text: "Other: 23.978d"
-                                        color: ui.theme.fontPrimaryColor
-
-                                    }
-
-                                    Text {
-                                        text: "Other: 23.98d"
-                                        color: ui.theme.fontPrimaryColor
-
-                                    }
-
-                                    Text {
-                                        text: "Ms: 999"
-                                        color: ui.theme.fontPrimaryColor
-
-                                    }
-
-                                    Text {
-                                        text: "Any number: 15, 12.34"
-                                        color: ui.theme.fontPrimaryColor
-
+                                    Repeater {
+                                        model: [
+                                            "Film: 24", "NTSC: 29.97d", "NTSC HD: 59.94d",
+                                            "PAL: 25", "PAL HD: 50", "Web: 30", "HD: 60",
+                                            "Other: 23.978d", "Other: 23.98d", "Ms: 999",
+                                            "Any number: 15, 12.34"
+                                        ]
+                                        delegate: Text {
+                                            text: modelData
+                                            color: ui.theme.fontPrimaryColor
+                                        }
                                     }
                                 }
                             }
@@ -375,10 +300,7 @@ MuseScore {
                             width: 20
                             height: 20
                             Layout.alignment: Qt.AlignRight
-
-                            onClicked: {
-                                settingsOverlay.opacity = 0;
-                            }
+                            onClicked: { settingsOverlay.opacity = 0; }
                         }
                     }
                 }
