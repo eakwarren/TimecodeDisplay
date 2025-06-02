@@ -1,5 +1,5 @@
 # TimecodeDisplay
-Shows MuseScore playback time as timecode.
+Shows MuseScore playback time as timecode. Supports multiple timecode formats and features an optional selection duration view.
 
 <img width="200" alt="TimecodeDisplayScreenshot" src="https://github.com/user-attachments/assets/becf1c0d-4781-41fb-a7d8-39f8385e3e1a" />
 
