@@ -6,8 +6,8 @@ import Muse.UiComponents 1.0
 import Muse.Ui 1.0
 
 MuseScore {
-    version: "0.9"
-    pluginType: "playback"
+    version: "1.0"
+    pluginType: "dialog"
     requiresScore: true
     id: timecodeDisplay
 
