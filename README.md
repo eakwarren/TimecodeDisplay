@@ -32,4 +32,4 @@ MuseScore Studio developers, wherever they may roam.
 Phil Xan, developer of the [ScoreTimecode](https://github.com/philxan/ScoreTimecode) plugin. 
 
 ## Release Notes
-v0.9 6/2/25 Initial release.
+v1.0 6/11/25 Initial release.
