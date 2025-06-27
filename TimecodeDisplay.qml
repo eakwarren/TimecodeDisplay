@@ -280,7 +280,7 @@ MuseScore {
                                         model: [
                                             "Film: 24", "NTSC: 29.97*", "NTSC HD: 59.94*",
                                             "PAL: 25", "PAL HD: 50", "Web: 30", "HD: 60",
-                                            "Other: 23.978*", "Other: 23.98*", "Ms: 999",
+                                            "Other: 23.976*", "Other: 23.98*", "Ms: 999",
                                             "Any number: 15, 12.34", "* drop frame"
                                         ]
                                         delegate: Text {
