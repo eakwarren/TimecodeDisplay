@@ -289,7 +289,7 @@ MuseScore {
                                         model: [
                                             "Film: 24", "NTSC: 29.97*", "NTSC HD: 59.94*",
                                             "PAL: 25", "PAL HD: 50", "Web: 30", "HD: 60",
-                                            "Other: 23.976*", "Other: 23.98*", "Milliseconds: 1000 (999 also accepted)",
+                                            "Other: 23.976*", "Other: 23.98*", "Milliseconds: 1000",
                                             "Any number: 15, 12.34", "* drop frame"
                                         ]
                                         delegate: Text {
@@ -324,8 +324,6 @@ MuseScore {
     function formatTime(seconds) {
         var fpsVal = parseFloat(fpsField.text);
         if (isNaN(fpsVal) || fpsVal <= 0) fpsVal = fps;
-        // Retain compatibility with the original plugin's 999 setting.
-        if (fpsVal === 999) fpsVal = 1000;
         var dropFrames = fpsVal === 29.97 || fpsVal === 59.94 || fpsVal === 23.976 || fpsVal === 23.98;
 
         var offsetSeconds = timecodeOffsetToSeconds(offsetField.text, fpsVal, dropFrames);
@@ -386,7 +384,6 @@ MuseScore {
     }
 
     function timecodeOffsetToSeconds(offsetText, fps, dropFrame) {
-        if (Number(fps) === 999) fps = 1000;
         if (!offsetText || typeof offsetText !== "string") return 0;
 
         var parts = offsetText.trim().split(/[:;]/).map(Number);

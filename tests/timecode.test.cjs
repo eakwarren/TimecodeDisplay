@@ -38,12 +38,16 @@ test('minute, hour, and three-digit hour boundaries', () => {
     ]) assert.equal(f.formatTimecode(ms, 1000, false), expected);
 });
 
-test('legacy 999 and 1000 both mean milliseconds, including offsets', () => {
-    for (const rate of ['999', '1000']) {
-        const f = formatter(rate, '00:00:00:125');
-        assert.equal(f.formatTime(.125), '00:00:00:250');
-        assert.equal(f.formatTime(.876), '00:00:01:001');
-    }
+test('1000 means milliseconds, including offsets', () => {
+    const f = formatter('1000', '00:00:00:125');
+    assert.equal(f.formatTime(.125), '00:00:00:250');
+    assert.equal(f.formatTime(.876), '00:00:01:001');
+});
+
+test('999 is interpreted literally as 999 frames per second', () => {
+    const f = formatter('999');
+    assert.equal(f.formatTime(.5), '00:00:00:499');
+    assert.equal(f.timecodeOffsetToSeconds('00:00:00:499', 999, false), 499 / 999);
 });
 
 test('ordinary frame rates keep frame counts and minimum two-digit padding', () => {
