@@ -16,8 +16,9 @@ MuseScore {
     description: "Displays synced timecode with offset and drop-frame support. Optionally shows the duration of a selection in the score."
     thumbnailName: "TimecodeDisplayIcon.png"
 
-    width: 225
-    height: 75
+    // Measure the complete timecode instead of clipping extra precision.
+    width: Math.max(300, Math.ceil(timecodeMetrics.advanceWidth) + 24)
+    height: 95
     visible: true
 
     property var playbackModel: null
@@ -30,6 +31,13 @@ MuseScore {
     property int endTick: 0
     property int tickDuration: 0
 
+
+    TextMetrics {
+        id: timecodeMetrics
+        font: tcDisplay.font
+        // Reserve the widest digits so playback does not resize the window.
+        text: tcDisplay.text.replace(/[0-9]/g, "8")
+    }
 
     // Initialize plugin
     Component.onCompleted: {
@@ -105,13 +113,16 @@ MuseScore {
             height: parent.height
 
             RowLayout {
-                height: 30
-                Layout.fillWidth: true
+                height: 45
+                width: parent.width
 
                 StyledTextLabel {
                     id: tcDisplay
-                    text: { formatTime(getPlayTimeSeconds()) } // re-evaluates if includeHours changes
-                    font.pixelSize: { if (fpsField.text === "999") { 33 } else { 36 } }
+                    Layout.fillWidth: true
+                    text: formatTime(getPlayTimeSeconds())
+                    font.pixelSize: 36
+                    wrapMode: Text.NoWrap
+                    elide: Text.ElideNone
                     color: ui.theme.accentColor
                 }
 
@@ -179,7 +190,7 @@ MuseScore {
 
             // block clicks to elements behind
             MouseArea {
-                Layout.fillWidth: true
+                anchors.fill: parent
                 hoverEnabled: true
                 onClicked: { } // do nothing, just consume the events
                 onPressed: { }
@@ -220,12 +231,11 @@ MuseScore {
                                                       text.length > 1 ? 1.0 : 0.5
                                                       )
 
-                            Layout.preferredWidth: 50
-                            Layout.minimumWidth: 50
-                            Layout.maximumWidth: 50
+                            Layout.preferredWidth: 75
+                            Layout.minimumWidth: 75
                             Layout.alignment: Qt.AlignLeft
                             horizontalAlignment: TextInput.AlignLeft
-                            validator: RegularExpressionValidator { regularExpression: /^((\d{1,2}).(\d{1,3}))$/ || /^((\d{1,2})$/ }
+                            validator: RegularExpressionValidator { regularExpression: /^\d{1,6}(\.\d{1,3})?$/ }
                             enabled: true
                         }
 
@@ -239,9 +249,8 @@ MuseScore {
                             id: offsetField
 
                             Layout.alignment: Qt.AlignRight
-                            Layout.preferredWidth: 85
-                            Layout.minimumWidth: 85
-                            Layout.maximumWidth: 85
+                            Layout.preferredWidth: Math.max(105, offsetField.contentWidth + 20)
+                            Layout.minimumWidth: 105
                             text: "00:00:00:00" // default value
                             placeholderText: "HH:MM:SS:FF"
                             horizontalAlignment: TextInput.AlignLeft
@@ -280,7 +289,7 @@ MuseScore {
                                         model: [
                                             "Film: 24", "NTSC: 29.97*", "NTSC HD: 59.94*",
                                             "PAL: 25", "PAL HD: 50", "Web: 30", "HD: 60",
-                                            "Other: 23.976*", "Other: 23.98*", "Ms: 999",
+                                            "Other: 23.976*", "Other: 23.98*", "Milliseconds: 1000",
                                             "Any number: 15, 12.34", "* drop frame"
                                         ]
                                         delegate: Text {
@@ -331,7 +340,9 @@ MuseScore {
                            (fps === 23.976 || fps === 23.98) ? 1 : 0;
 
         const totalSeconds = ms / 1000;
-        let totalFrames = Math.floor(totalSeconds * frInt); // use integer fps (30, 60)
+        // Milliseconds already arrive as an integer. Avoid a floating-point
+        // round trip: e.g. (1001 / 1000) * 1000 can be 1000.9999999999999.
+        let totalFrames = fps === 1000 ? Math.round(ms) : Math.floor(totalSeconds * frInt);
         // let totalFrames = Math.round(ms / 1000 * fps);  // use round (up) instead of floor (down)
 
         if (isDrop && dropFrames > 0) {
@@ -350,6 +361,7 @@ MuseScore {
         const minutes = Math.floor((totalFrames % (frInt * 3600)) / (frInt * 60));
         const seconds = Math.floor((totalFrames % (frInt * 60)) / frInt);
         const frames = totalFrames % frInt;
+        const frameDigits = Math.max(2, String(frInt - 1).length);
 
         const separator = isDrop ? ";" : ":";
 
@@ -357,10 +369,11 @@ MuseScore {
             return String(n).padStart(2, "0");
         }
 
-        return pad2(hours) + ":" + pad2(minutes) + ":" + pad2(seconds) + separator + pad2(frames);
+        return pad2(hours) + ":" + pad2(minutes) + ":" + pad2(seconds) + separator + String(frames).padStart(frameDigits, "0");
     }
 
     function getPlayTimeSeconds() {
+        if (!playbackModel) return 0;
         var t = playbackModel.playTime;
         if (!t) return 0;
 
